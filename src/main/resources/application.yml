@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/soundinstantz
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+application:
+  security:
+    jwt:
+      # This is Base64-encoded secret key with length >= 256 bits
+      secret: N2Q1NzIzYmQ3ODZiNmI4ZDc5MzI3ODMyNzg5MzI3ODMyNzgzMjc4OTMyNzgzMjc4OTMyNzgzMjc4OTMyNzgzMjc4OQ==
+      expiration: 86400000 # 24 hours in milliseconds
+
+server:
+  port: 8080
