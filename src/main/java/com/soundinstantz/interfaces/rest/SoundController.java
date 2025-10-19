@@ -3,11 +3,15 @@ package com.soundinstantz.interfaces.rest;
 import com.soundinstantz.application.dto.sound.SoundDTO;
 import com.soundinstantz.application.exception.BizException;
 import com.soundinstantz.application.service.SoundService;
+import com.soundinstantz.domain.sound.Sound;
+import com.soundinstantz.domain.user.User;
 import com.soundinstantz.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,16 +39,34 @@ public class SoundController {
         return ResponseEntity.ok(new ApiResponse<>(sound));
     }
 
+    @PostMapping("/{id}/like")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<SoundDTO>> likeSound(@PathVariable Long id,
+                                          @AuthenticationPrincipal User user) throws BizException {
+        SoundDTO sound = soundService.toggleHeart(id, user);
+        return ResponseEntity.ok(new ApiResponse<>(sound));
+    }
+
+    @DeleteMapping("/{id}/like")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<SoundDTO>> unlikeSound(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user
+    ) throws BizException {
+        SoundDTO sound = soundService.toggleHeart(id, user);
+        return ResponseEntity.ok(new ApiResponse<>(sound));
+    }
+
     @PostMapping("/{id}/views")
     public ResponseEntity<Void> incrementViews(@PathVariable String id) {
         soundService.incrementPlayCount(Long.parseLong(id));
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/like")
-    public ResponseEntity<Map<String, Object>> toggleLike(@PathVariable String id) throws BizException {
-        boolean liked = soundService.toggleLike(Long.parseLong(id));
-        long likes = soundService.getLikesCount(Long.parseLong(id));
-        return ResponseEntity.ok(Map.of("liked", liked, "likes", likes));
-    }
+//    @PostMapping("/{id}/like")
+//    public ResponseEntity<Map<String, Object>> toggleLike(@PathVariable String id) throws BizException {
+//        boolean liked = soundService.toggleLike(Long.parseLong(id));
+//        long likes = soundService.getLikesCount(Long.parseLong(id));
+//        return ResponseEntity.ok(Map.of("liked", liked, "likes", likes));
+//    }
 }

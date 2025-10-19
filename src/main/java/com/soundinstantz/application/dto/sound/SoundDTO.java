@@ -23,4 +23,5 @@ public class SoundDTO {
     private Long viewed;
     private String tags;
     private CategoryDto categoryDto;
+    private boolean liked;
 }

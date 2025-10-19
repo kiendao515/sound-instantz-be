@@ -8,7 +8,9 @@ import com.soundinstantz.domain.category.Category;
 import com.soundinstantz.domain.category.CategoryRepository;
 import com.soundinstantz.domain.sound.Sound;
 import com.soundinstantz.domain.sound.SoundEvtRepository;
+import com.soundinstantz.domain.sound.SoundEvtTracking;
 import com.soundinstantz.domain.sound.SoundRepository;
+import com.soundinstantz.domain.user.User;
 import com.soundinstantz.util.Const;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
 
 
 @Service
@@ -68,6 +72,40 @@ public class SoundService {
         return convertToDTO(sound);
     }
 
+    public SoundDTO toggleHeart(Long id, User user) throws BizException{
+        Sound sound = soundRepository.findById(id)
+                .orElseThrow(() -> new BizException("Sound not found"));
+        SoundDTO dto = convertToDTO(sound);
+        boolean hasLiked = hasLiked(id, user.getId());
+
+        if (hasLiked) {
+            soundEvtRepository.deleteByEventTypeAndSoundIdAndUserId(
+                    Const.SoundEventType.LIKE,
+                    id,
+                    user.getId()
+            );
+            dto.setLiked(false);
+//            sound.setLikeCount(sound.getLikeCount() - 1);
+        } else {
+            SoundEvtTracking soundEvt = SoundEvtTracking.builder().soundId(id).userId(user.getId())
+                    .eventType(Const.SoundEventType.LIKE)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            soundEvtRepository.save(soundEvt);
+            dto.setLiked(true);
+//            sound.setLikeCount(sound.getLikeCount() + 1);
+        }
+        return dto;
+    }
+
+    public boolean hasLiked(Long soundId, Long userId) {
+        return soundEvtRepository.existsByEventTypeAndSoundIdAndUserId(
+                Const.SoundEventType.LIKE,
+                soundId,
+                userId
+        );
+    }
+
     @Transactional
     public void incrementPlayCount(Long id) {
         Sound sound = soundRepository.findById(id)
@@ -104,6 +142,7 @@ public class SoundService {
                 .categoryDto(CategoryDto.builder()
                         .id(c.getId())
                         .title(c.getTitle())
+                        .description(c.getDescription())
                         .slug(c.getSlug())
                         .build())
                 .tags(sound.getTags())

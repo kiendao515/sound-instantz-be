@@ -51,7 +51,7 @@ public class ButtonService {
         if (userId != null) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-            isFavorite = user.getFavoriteButtons().contains(button);
+            //isFavorite = user.getFavoriteButtons().contains(button);
         }
 
         return ButtonDTO.builder()

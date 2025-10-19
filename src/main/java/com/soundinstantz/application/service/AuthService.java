@@ -24,7 +24,6 @@ public class AuthService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .username(request.getEmail().split("@")[0])
                 .build();
 
         return userRepository.save(user);

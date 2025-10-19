@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "sound_events")
 @Data
@@ -21,4 +23,7 @@ public class SoundEvtTracking {
 
     @Column(name = "event_type", nullable = false)
     private String eventType;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
