@@ -1,5 +1,6 @@
 package com.soundinstantz.config.security;
 
+import com.soundinstantz.application.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class WebSecurityConfig {
 
     private final UserDetailsService userDetailsService;
-    private final TokenService tokenService;
+    private final JwtService tokenService;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {

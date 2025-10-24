@@ -1,6 +1,7 @@
 package com.soundinstantz.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.soundinstantz.application.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final TokenService tokenService;
+    private final JwtService tokenService;
     private final UserDetailsService userDetailsService;
 
     @Override

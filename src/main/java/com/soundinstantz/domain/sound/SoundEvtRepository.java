@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface SoundEvtRepository extends JpaRepository<SoundEvtTracking, Long> {
     int countByUserIdAndSoundId(Long userId, Long soundId);
+    List<SoundEvtTracking> findAllByUserIdAndEventType(Long userId, String event);
     int countBySoundIdAndEventType(Long soundId, String event);
     
     boolean existsByEventTypeAndSoundIdAndUserId(

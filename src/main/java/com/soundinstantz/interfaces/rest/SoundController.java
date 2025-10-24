@@ -1,6 +1,7 @@
 package com.soundinstantz.interfaces.rest;
 
 import com.soundinstantz.application.dto.sound.SoundDTO;
+import com.soundinstantz.application.dto.sound.SoundFavouriteDto;
 import com.soundinstantz.application.exception.BizException;
 import com.soundinstantz.application.service.SoundService;
 import com.soundinstantz.domain.sound.Sound;
@@ -39,20 +40,17 @@ public class SoundController {
         return ResponseEntity.ok(new ApiResponse<>(sound));
     }
 
-    @PostMapping("/{id}/like")
+    @GetMapping("/favourite")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<SoundDTO>> likeSound(@PathVariable Long id,
-                                          @AuthenticationPrincipal User user) throws BizException {
-        SoundDTO sound = soundService.toggleHeart(id, user);
+    public ResponseEntity<ApiResponse<SoundFavouriteDto>> getListFavoriteSound(@AuthenticationPrincipal User user) throws BizException {
+        SoundFavouriteDto sound = soundService.getListFavoriteSound(user);
         return ResponseEntity.ok(new ApiResponse<>(sound));
     }
 
-    @DeleteMapping("/{id}/like")
+    @PostMapping("/{id}/like")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<SoundDTO>> unlikeSound(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User user
-    ) throws BizException {
+    public ResponseEntity<ApiResponse<SoundDTO>> toggleHeart(@PathVariable Long id,
+                                                           @AuthenticationPrincipal User user) throws BizException {
         SoundDTO sound = soundService.toggleHeart(id, user);
         return ResponseEntity.ok(new ApiResponse<>(sound));
     }
@@ -63,10 +61,4 @@ public class SoundController {
         return ResponseEntity.ok().build();
     }
 
-//    @PostMapping("/{id}/like")
-//    public ResponseEntity<Map<String, Object>> toggleLike(@PathVariable String id) throws BizException {
-//        boolean liked = soundService.toggleLike(Long.parseLong(id));
-//        long likes = soundService.getLikesCount(Long.parseLong(id));
-//        return ResponseEntity.ok(Map.of("liked", liked, "likes", likes));
-//    }
 }

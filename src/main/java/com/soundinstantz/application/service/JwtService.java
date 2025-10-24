@@ -19,8 +19,11 @@ public class JwtService {
     @Value("${application.security.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpirationMs;
+    @Value("${application.security.jwt.access-token.expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshTokenExpiration;
 
     private SecretKey key;
 
@@ -30,22 +33,40 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String email) {
+    public String generateAccessToken(String email) {
+        return generateToken(email, accessTokenExpiration);
+    }
+
+    public String generateRefreshToken(String email) {
+        return generateToken(email, refreshTokenExpiration);
+    }
+
+    private String generateToken(String email, long expiration) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)
                 .compact();
     }
 
     public String verifyToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-        return claims.getSubject();
+            // Check if token is expired
+            if (claims.getExpiration().before(new Date())) {
+                return null;
+            }
+
+            return claims.getSubject();
+        } catch (Exception e) {
+            log.error("Error verifying token", e);
+            return null;
+        }
     }
 }

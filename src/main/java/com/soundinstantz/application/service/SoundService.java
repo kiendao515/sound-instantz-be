@@ -2,6 +2,7 @@ package com.soundinstantz.application.service;
 
 import com.soundinstantz.application.dto.category.CategoryDto;
 import com.soundinstantz.application.dto.sound.SoundDTO;
+import com.soundinstantz.application.dto.sound.SoundFavouriteDto;
 import com.soundinstantz.application.exception.BizException;
 import com.soundinstantz.application.exception.ResourceNotFoundException;
 import com.soundinstantz.domain.category.Category;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Service
@@ -72,6 +74,17 @@ public class SoundService {
         return convertToDTO(sound);
     }
 
+    @Transactional
+    public SoundFavouriteDto getListFavoriteSound(User user) throws BizException {
+        SoundFavouriteDto dto = new SoundFavouriteDto();
+        List<SoundEvtTracking> list = soundEvtRepository.findAllByUserIdAndEventType(user.getId(),
+                Const.SoundEventType.LIKE);
+        dto.setSoundIds(list.stream().map(SoundEvtTracking::getSoundId).toList());
+        dto.setUserId(user.getId());
+        return dto;
+    }
+
+    @Transactional
     public SoundDTO toggleHeart(Long id, User user) throws BizException{
         Sound sound = soundRepository.findById(id)
                 .orElseThrow(() -> new BizException("Sound not found"));
@@ -85,7 +98,7 @@ public class SoundService {
                     user.getId()
             );
             dto.setLiked(false);
-//            sound.setLikeCount(sound.getLikeCount() - 1);
+            sound.setLikeCount(sound.getLikeCount() != null ? sound.getLikeCount() - 1 : 0L);
         } else {
             SoundEvtTracking soundEvt = SoundEvtTracking.builder().soundId(id).userId(user.getId())
                     .eventType(Const.SoundEventType.LIKE)
@@ -93,8 +106,9 @@ public class SoundService {
                     .build();
             soundEvtRepository.save(soundEvt);
             dto.setLiked(true);
-//            sound.setLikeCount(sound.getLikeCount() + 1);
+            sound.setLikeCount(sound.getLikeCount() != null ? sound.getLikeCount() + 1 : 1L);
         }
+        soundRepository.save(sound);
         return dto;
     }
 

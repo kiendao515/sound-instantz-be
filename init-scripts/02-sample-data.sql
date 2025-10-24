@@ -22,3 +22,7 @@ SELECT s.id, 'LIKE', CURRENT_TIMESTAMP
 FROM sounds s
 CROSS JOIN generate_series(1, 5)
 WHERE s.id IN (1, 2, 3, 4, 5);
+
+alter table sound_events add column user_id BIGINT NOT NULL REFERENCES users(id),
+update sound_events set user_id = 4
+where id % 4 = 0;

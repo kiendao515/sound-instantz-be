@@ -5,8 +5,11 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.soundinstantz.application.dto.auth.AuthResponseDTO;
 import com.soundinstantz.application.dto.auth.GoogleTokenDTO;
 import com.soundinstantz.application.exception.AuthenticationException;
+import com.soundinstantz.application.exception.BizException;
+import com.soundinstantz.application.exception.TokenRefreshException;
 import com.soundinstantz.domain.user.AuthProvider;
 import com.soundinstantz.domain.user.User;
 import com.soundinstantz.domain.user.UserRepository;
@@ -33,7 +36,7 @@ public class GoogleAuthService {
     private final JwtService jwtService;
 
     @Transactional
-    public String authenticateWithGoogle(String idTokenString) {
+    public AuthResponseDTO authenticateWithGoogle(String idTokenString) {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                     .setAudience(Collections.singletonList(clientId))
@@ -45,18 +48,22 @@ public class GoogleAuthService {
             }
 
             Payload payload = idToken.getPayload();
-            String email = payload.getEmail();
             boolean emailVerified = payload.getEmailVerified();
 
             if (!emailVerified) {
                 throw new AuthenticationException("Email not verified by Google");
             }
 
-            // Get or create user
             User user = getOrCreateUser(payload);
 
-            // Generate JWT token using email
-            return jwtService.generateToken(user.getEmail());
+            String accessToken = jwtService.generateAccessToken(user.getEmail());
+            String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            return AuthResponseDTO.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .expiresIn(3600) // 1 hour expiration
+                    .build();
 
         } catch (GeneralSecurityException | IOException e) {
             log.error("Error verifying Google token", e);
@@ -80,5 +87,25 @@ public class GoogleAuthService {
                 .build();
 
         return userRepository.save(newUser);
+    }
+
+    public AuthResponseDTO refreshToken(String refreshToken) {
+        try {
+            String email = jwtService.verifyToken(refreshToken);
+            if (email == null) {
+                throw new TokenRefreshException("Invalid refresh token");
+            }
+
+            String newAccessToken = jwtService.generateAccessToken(email);
+            String newRefreshToken = jwtService.generateRefreshToken(email);
+
+            return AuthResponseDTO.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .expiresIn(3600) // 1 hour
+                    .build();
+        } catch (Exception e) {
+            throw new TokenRefreshException("Error refreshing token: " + e.getMessage());
+        }
     }
 }

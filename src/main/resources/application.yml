@@ -16,18 +16,15 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-jwt:
-  secret: your-256-bit-secret # Change this to a secure secret key
-  expiration: 3600 # 1 hour in seconds
-  refresh-expiration: 604800 # 1 week in seconds
-
 application:
   security:
     jwt:
       # This is Base64-encoded secret key with length >= 256 bits
       secret: N2Q1NzIzYmQ3ODZiNmI4ZDc5MzI3ODMyNzg5MzI3ODMyNzgzMjc4OTMyNzgzMjc4OTMyNzgzMjc4OTMyNzgzMjc4OQ==
-      expiration: 86400000 # 24 hours in milliseconds
-
+      access-token:
+        expiration: 86400000
+      refresh-token:
+        expiration: 604800000 # 7 days in milliseconds
 server:
   port: 8080
 

@@ -34,6 +34,9 @@ public class Sound {
     @Builder.Default
     private Long playCount = 0L;
 
+    @Column(name = "like_count")
+    private Long likeCount;
+
     @Column(name = "download_count")
     @Builder.Default
     private Long downloadCount = 0L;
